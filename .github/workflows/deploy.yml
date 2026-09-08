@@ -1,0 +1,84 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  HUGO_VERSION: "0.163.3"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # enableGitInfo needs the history
+
+      - name: Install Hugo
+        run: |
+          set -eu
+          url="https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          curl -fsSL "$url" -o hugo.tar.gz
+          tar xzf hugo.tar.gz hugo
+          sudo install -m755 hugo /usr/local/bin/hugo
+          hugo version
+
+      # The house style is that no em-dash or en-dash reaches the site. Almost
+      # every paragraph the site is adapted from has one, so this runs first.
+      - name: House style
+        run: ./scripts/check-style.sh
+
+      - name: Build
+        run: hugo --minify --gc --printPathWarnings
+
+      - name: Check internal links
+        run: |
+          set -eu
+          grep -rhoE 'href="(/[^"#]*)"' public --include=*.html \
+            | sed 's/href="//; s/"$//' | sort -u | while read -r p; do
+              case "$p" in */) f="public${p}index.html" ;; *) f="public${p}" ;; esac
+              [ -e "$f" ] || echo "broken: $p"
+            done > broken.txt
+          cat broken.txt
+          [ ! -s broken.txt ]
+
+      - name: Upload site
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: public
+          retention-days: 5
+
+  deploy:
+    # Pull requests build and are checked; only main reaches the server.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-wsharp-io
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: public
+
+      - name: Publish over rsync
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          set -eu
+          install -m700 -d ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_KEY"  > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          rsync -az --delete --chmod=D755,F644 \
+                -e "ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes" \
+                public/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
