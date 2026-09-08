@@ -322,6 +322,7 @@ hr {
     font-family: var(--mono);
     font-size: 0.7em;
 }
+.heading-anchor::before { content: "#"; }
 h2:hover .heading-anchor, h3:hover .heading-anchor,
 .heading-anchor:focus-visible { opacity: 1; }
 
@@ -388,7 +389,8 @@ h2:hover .heading-anchor, h3:hover .heading-anchor,
     justify-content: space-between;
     gap: 1rem;
 }
-.codeblock__label span:last-child { color: var(--ink-faint); }
+.codeblock__label::before { content: attr(data-label); }
+.codeblock__label::after  { content: attr(data-lang-label); color: var(--ink-faint); }
 
 /* ----------------------------------------------------------------- note */
 

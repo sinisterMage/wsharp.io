@@ -20,10 +20,8 @@
         {{- $code = delimit $out "\n" -}}
     {{- end -}}
 <div class="codeblock" data-lang="wsharp">
-    <div class="codeblock__label">
-        <span>examples/{{ $name }}</span>
-        <span>W#</span>
-    </div>
+    <div class="codeblock__label" aria-hidden="true"
+         data-label="examples/{{ $name }}" data-lang-label="W#"></div>
     {{- highlight (trim $code "\n") "zig" "" -}}
 </div>
 {{- else -}}

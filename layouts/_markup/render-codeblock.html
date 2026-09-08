@@ -22,12 +22,14 @@
 {{- else if $lang -}}{{- $label = $lang -}}
 {{- end -}}
 
+{{- /* The label is an attribute rather than text, and CSS draws it. Otherwise
+       "Shell" and "Output" end up in `.Plain`, and therefore in the search
+       index, in front of every code sample. */ -}}
 <div class="codeblock"{{ if $isWsharp }} data-lang="wsharp"{{ end }}>
     {{- if or $label .Attributes.file -}}
-    <div class="codeblock__label">
-        <span>{{ with .Attributes.file }}{{ . }}{{ else }}{{ $label }}{{ end }}</span>
-        {{- if and .Attributes.file $label }}<span>{{ $label }}</span>{{ end -}}
-    </div>
+    <div class="codeblock__label" aria-hidden="true"
+         data-label="{{ with .Attributes.file }}{{ . }}{{ else }}{{ $label }}{{ end }}"
+         {{- with .Attributes.file }}{{ if $label }} data-lang-label="{{ $label }}"{{ end }}{{ end }}></div>
     {{- end -}}
     {{- if $lang -}}
         {{- highlight (trim .Inner "\n") $lang .Options -}}

@@ -1,1 +1,4 @@
-<h{{ .Level }} id="{{ .Anchor }}">{{ .Text }}{{ if lt .Level 4 }}<a class="heading-anchor" href="#{{ .Anchor }}" aria-label="Link to this section">#</a>{{ end }}</h{{ .Level }}>
+{{- /* The anchor carries no text, and CSS draws the `#`. Otherwise every
+       heading in `.Plain` ends "...sharpie#", which is what the search index is
+       built from. */ -}}
+<h{{ .Level }} id="{{ .Anchor }}">{{ .Text }}{{ if lt .Level 4 }}<a class="heading-anchor" href="#{{ .Anchor }}" aria-label="Link to this section"></a>{{ end }}</h{{ .Level }}>
