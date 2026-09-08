@@ -35,3 +35,5 @@ is.
 [Limitations](/docs/limitations/) is the honest list of what does not work yet,
 each entry with the reason it was left. [Status](/docs/status/) is what has been
 built so far.
+
+The site itself is [open source](https://github.com/sinisterMage/wsharp.io), and a correction is a pull request.
