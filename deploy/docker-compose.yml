@@ -1,0 +1,39 @@
+# wsharp.io, as the server runs it.
+#
+# This file lives at /docker/wsharp-io/docker-compose.yml on 147.93.56.183 and
+# is kept here so that the server's configuration is reviewable and restorable
+# rather than only present on the server.
+#
+# The box routes with Traefik, which discovers containers through the Docker
+# provider with `exposedbydefault=false`, so the labels below are the whole
+# routing configuration. Traefik terminates TLS with the `letsencrypt`
+# certresolver over an HTTP-01 challenge on the `web` entrypoint, and redirects
+# `web` to `websecure` itself. This is the same shape `forgejo-hagc` uses for
+# git.wsharp.io.
+#
+# The site itself is static files in ./public, which the deploy rsyncs into.
+# Nothing here builds anything.
+#
+#   docker compose up -d
+#   docker compose logs -f
+
+services:
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.wsharp-io.rule: "Host(`wsharp.io`) || Host(`www.wsharp.io`)"
+      traefik.http.routers.wsharp-io.entrypoints: "websecure"
+      traefik.http.routers.wsharp-io.tls.certresolver: "letsencrypt"
+      traefik.http.routers.wsharp-io.middlewares: "wsharp-io-www"
+      traefik.http.services.wsharp-io.loadbalancer.server.port: "80"
+
+      # One canonical host. www redirects to the apex, permanently.
+      # $$ escapes compose's own interpolation; Traefik sees a single $.
+      traefik.http.middlewares.wsharp-io-www.redirectregex.regex: "^https://www\\.wsharp\\.io/(.*)"
+      traefik.http.middlewares.wsharp-io-www.redirectregex.replacement: "https://wsharp.io/$${1}"
+      traefik.http.middlewares.wsharp-io-www.redirectregex.permanent: "true"

@@ -43,11 +43,11 @@ disableKinds = ["taxonomy", "term"]
     startLevel = 2
     endLevel   = 3
 
+# No RSS. There is nothing chronological here, and a feed of a reference manual
+# is a large file nobody subscribes to. `json` is the search index.
 [outputs]
-  home = ["html", "rss", "json"]
+  home    = ["html", "json"]
+  section = ["html"]
+  page    = ["html"]
 
 [taxonomies]
-
-[services]
-  [services.rss]
-    limit = 20
