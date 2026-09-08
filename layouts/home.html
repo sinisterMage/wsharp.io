@@ -1,0 +1,129 @@
+{{ define "main" }}
+<div class="home">
+
+    <section class="hero">
+        <div>
+            <h1>A special case is a function you add, not a branch you insert.</h1>
+            <p class="hero__lede">
+                W# is a compiled language built on multiple dispatch, for services, tools
+                and long-running processes. Types are inferred rather than declared and
+                checked across the whole program before it builds. Values are unboxed.
+                The collector is built for low pause times.
+            </p>
+
+            <div class="hero__install"><span class="prompt">$ </span>curl -fsSL https://raw.githubusercontent.com/sinisterMage/sharpie/main/install.sh | sh
+<span class="prompt">$ </span>sharpie install stable</div>
+
+            <div class="hero__actions">
+                <a class="button" href="/docs/install/">Install W#</a>
+                <a class="button button--quiet" href="/docs/tour/">Take the tour</a>
+                <a class="button button--quiet" href="{{ site.Params.repo }}">Source</a>
+            </div>
+        </div>
+
+        {{ partial "lattice.html" . }}
+    </section>
+
+    <section class="pillars">
+        <div class="pillar">
+            <h2>Dispatch that mostly is not there at run time</h2>
+            <p>
+                When inference pins the arguments, a call lowers to an ordinary direct
+                call with no dispatch code at all. When it cannot, the test is one
+                subtract and one unsigned compare. No vtable, no inline cache, no
+                method-table lookup.
+            </p>
+        </div>
+        <div class="pillar">
+            <h2>Types you never write and can still rely on</h2>
+            <p>
+                Hindley-Milner inference over the whole program, so
+                <code>fn add(a, b)</code> has a signature rather than a hope. An
+                ambiguous pair of overloads is a compile error, and so is a function
+                that can reach the end of its body without returning a value.
+            </p>
+        </div>
+        <div class="pillar">
+            <h2>Failure in the type, and it says which</h2>
+            <p>
+                <code>!T</code> carries the error set, inferred from what a function
+                raises or written down as <code>!{NotFound, IoFailed}str</code> and
+                checked. The <code>e</code> bound by <code>catch |e|</code> is worth
+                testing against.
+            </p>
+        </div>
+    </section>
+
+    <section class="home-section">
+        <h2>The standard library is W# too</h2>
+        <div class="home-grid">
+            <div>
+                <p>
+                    SHA-2, ChaCha20-Poly1305, AES-GCM, X25519, P-256, P-384, RSA, X.509
+                    and TLS 1.3 are all <code>.ws</code> files compiled with your program,
+                    monomorphised per use and dropped when nothing calls them. So this
+                    fetches a page over a connection W# negotiated itself, and verifies
+                    the chain against the root store the machine already has.
+                </p>
+                <p><a href="/docs/stdlib/">What else is in the library</a></p>
+            </div>
+{{ highlight `const http = @import("std/http");
+const text = @import("std/str");
+
+fn main() i64 {
+    const answer = http.get("https://wsharp.io/") catch return 1;
+    print_int(answer.code);
+    print_int(text.len(answer.body));
+    return 0;
+}` "zig" "" }}
+        </div>
+    </section>
+
+    <section class="home-section">
+        <h2>Threads that share no heap</h2>
+        <div class="home-grid">
+            <div>
+                <p>
+                    A worker is an ordinary module. <code>init</code> makes the state, and
+                    any function taking that state first is something the worker can be
+                    asked to do. Values cross as bytes, so there is no shared collector,
+                    no lock on the fast path, and no data race to write.
+                </p>
+                <p><a href="/docs/tour/workers/">Workers and the broker</a></p>
+            </div>
+{{ highlight `const counter = @import("./modules/counter.ws");
+
+fn main() i64 {
+    const orders = @spawn(counter, 0, "orders") catch return 1;
+    const total = orders.add(7) catch |e| return 2;
+    print_int(total);
+    @join(orders) catch return 3;
+    return 0;
+}` "zig" "" }}
+        </div>
+    </section>
+
+    <section class="home-section">
+        <h2>Where to start</h2>
+        <ul class="card-list">
+            <li><a href="/docs/install/">
+                <span class="card-list__name">Install</span>
+                <span class="card-list__desc">One line through sharpie, a release tarball, or a build from source.</span>
+            </a></li>
+            <li><a href="/docs/tour/">
+                <span class="card-list__name">The tour</span>
+                <span class="card-list__desc">Eight short programs, each one thing the language does differently.</span>
+            </a></li>
+            <li><a href="/docs/reference/">
+                <span class="card-list__name">Language reference</span>
+                <span class="card-list__desc">Syntax, types, dispatch rules, error sets, generics, modules, and the compiler's own command line.</span>
+            </a></li>
+            <li><a href="/docs/internals/collector/">
+                <span class="card-list__name">How the collector works</span>
+                <span class="card-list__desc">Coalescing reference counting, a concurrent mark trace for cycles, and compaction that runs while the program does.</span>
+            </a></li>
+        </ul>
+    </section>
+
+</div>
+{{ end }}

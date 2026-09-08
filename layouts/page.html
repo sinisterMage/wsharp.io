@@ -1,0 +1,34 @@
+{{ define "main" }}
+<div class="shell">
+    {{ partial "sidebar.html" . }}
+
+    <main class="prose">
+        <h1 class="page-title">{{ .Title }}</h1>
+        {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+
+        {{ .Content }}
+
+        {{ $prev := "" }}{{ $next := "" }}
+        {{ with .PrevInSection }}{{ $prev = . }}{{ end }}
+        {{ with .NextInSection }}{{ $next = . }}{{ end }}
+        {{ if or $prev $next }}
+        <nav class="page-nav" aria-label="Neighbouring pages">
+            {{ with $prev }}<a href="{{ .RelPermalink }}"><small>Previous</small>{{ .Title }}</a>{{ end }}
+            {{ with $next }}<a href="{{ .RelPermalink }}"><small>Next</small>{{ .Title }}</a>{{ end }}
+        </nav>
+        {{ end }}
+
+        <p class="page-meta">
+            {{ with .Lastmod }}Last changed {{ .Format "2 January 2006" }}. {{ end }}
+            <a href="{{ site.Params.siteRepo }}/edit/main/content/{{ .File.Path }}">Improve this page</a>
+        </p>
+    </main>
+
+    <div class="aside">
+        {{ if gt (len .TableOfContents) 60 }}
+        <span class="aside__title">On this page</span>
+        <nav aria-label="On this page">{{ .TableOfContents }}</nav>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

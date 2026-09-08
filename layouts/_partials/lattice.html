@@ -1,0 +1,30 @@
+{{- /* The one figure that is specific to this language rather than to docs
+       sites in general: the HTTP status lattice, with the contiguous run of
+       type ids that makes a runtime dispatch test two instructions. The ids
+       are the real preorder positions from the compiler's status table,
+       counted from `Status`. */ -}}
+<figure class="lattice">
+    <table>
+        <tbody>
+            <tr><td class="id">0</td><td class="type">Status</td><td class="arm"></td></tr>
+            <tr><td class="id">1</td><td class="type">&nbsp;&nbsp;Status1xx</td><td class="arm"></td></tr>
+            <tr><td class="id">3</td><td class="type">&nbsp;&nbsp;Status2xx</td><td class="arm"></td></tr>
+            <tr><td class="id">8</td><td class="type">&nbsp;&nbsp;Status3xx</td><td class="arm"></td></tr>
+            <tr class="band"><td class="id">12</td><td class="type">&nbsp;&nbsp;Status4xx</td><td class="arm">┐</td></tr>
+            <tr class="band"><td class="id">13</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;BadRequest400</td><td class="arm">│</td></tr>
+            <tr class="band"><td class="id">14</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;Unauthorized401</td><td class="arm">│</td></tr>
+            <tr class="band"><td class="id">15</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;Forbidden403</td><td class="arm">│</td></tr>
+            <tr class="band"><td class="id">16</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;NotFound404</td><td class="arm">│</td></tr>
+            <tr class="band"><td class="id">17</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;MethodNotAllowed405</td><td class="arm">│</td></tr>
+            <tr class="band"><td class="id">18</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;Conflict409</td><td class="arm">│</td></tr>
+            <tr class="band"><td class="id">19</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;Teapot418</td><td class="arm">│</td></tr>
+            <tr class="band"><td class="id">20</td><td class="type">&nbsp;&nbsp;&nbsp;&nbsp;TooManyRequests429</td><td class="arm">┘</td></tr>
+            <tr><td class="id">21</td><td class="type">&nbsp;&nbsp;Status5xx</td><td class="arm"></td></tr>
+        </tbody>
+    </table>
+    <figcaption class="lattice__caption">
+        Type ids are assigned in a preorder walk of the subtype lattice, so every
+        type's subtypes occupy a contiguous range. Asking whether a value is a
+        <b>Status4xx</b> is <b>id - 12 &lt;= 8</b>: one subtract, one unsigned compare.
+    </figcaption>
+</figure>

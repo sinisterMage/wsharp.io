@@ -1,0 +1,28 @@
+{{ define "main" }}
+<div class="shell">
+    {{ partial "sidebar.html" . }}
+
+    <main class="prose">
+        <h1 class="page-title">{{ .Title }}</h1>
+        {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+
+        {{ .Content }}
+
+        {{ $children := union .Sections .RegularPages }}
+        {{ with $children.ByWeight }}
+        <ul class="card-list">
+            {{ range . }}
+            <li>
+                <a href="{{ .RelPermalink }}">
+                    <span class="card-list__name">{{ .Title }}</span>
+                    {{ with .Description }}<span class="card-list__desc">{{ . }}</span>{{ end }}
+                </a>
+            </li>
+            {{ end }}
+        </ul>
+        {{ end }}
+    </main>
+
+    <div class="aside"></div>
+</div>
+{{ end }}

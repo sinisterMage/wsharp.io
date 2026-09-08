@@ -1,0 +1,29 @@
+{{- $current := .RelPermalink -}}
+{{- $docs := site.GetPage "/docs" -}}
+<aside class="sidebar" id="sidebar">
+    <nav aria-label="Documentation">
+        {{- /* Top-level pages of /docs that are not sections, first. */ -}}
+        <div class="sidebar__group">
+            <a href="{{ $docs.RelPermalink }}">{{ $docs.Title }}</a>
+            <ul>
+                {{- range $docs.RegularPages.ByWeight }}
+                <li><a href="{{ .RelPermalink }}"
+                       {{- if eq .RelPermalink $current }} aria-current="page"{{ end }}>{{ .Title }}</a></li>
+                {{- end }}
+            </ul>
+        </div>
+
+        {{- range $docs.Sections.ByWeight }}
+        <div class="sidebar__group">
+            <a href="{{ .RelPermalink }}"
+               {{- if eq .RelPermalink $current }} aria-current="page"{{ end }}>{{ .Title }}</a>
+            <ul>
+                {{- range .RegularPages.ByWeight }}
+                <li><a href="{{ .RelPermalink }}"
+                       {{- if eq .RelPermalink $current }} aria-current="page"{{ end }}>{{ .Title }}</a></li>
+                {{- end }}
+            </ul>
+        </div>
+        {{- end }}
+    </nav>
+</aside>

@@ -1,0 +1,30 @@
+{{- $desc := or .Description .Summary site.Params.description -}}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ if .IsHome }}{{ site.Title }}: a compiled language built on multiple dispatch{{ else }}{{ .Title }} | {{ site.Title }}{{ end }}</title>
+<meta name="description" content="{{ $desc | plainify | truncate 180 }}">
+<link rel="canonical" href="{{ .Permalink }}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="{{ if .IsHome }}website{{ else }}article{{ end }}">
+<meta property="og:title" content="{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }}{{ end }}">
+<meta property="og:description" content="{{ $desc | plainify | truncate 180 }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:site_name" content="{{ site.Title }}">
+<meta name="twitter:card" content="summary">
+{{ with .OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">{{ end }}
+
+{{- $css := slice (resources.Get "css/chroma.css") (resources.Get "css/main.css") | resources.Concat "css/site.css" -}}
+{{- if hugo.IsProduction }}{{ $css = $css | minify | fingerprint }}{{ end -}}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}">
+
+<script>
+    // Stamp the theme before first paint, so a dark-mode reload never flashes.
+    (function () {
+        try {
+            var t = localStorage.getItem("theme");
+            if (t === "light" || t === "dark") {
+                document.documentElement.setAttribute("data-theme", t);
+            }
+        } catch (e) {}
+    })();
+</script>

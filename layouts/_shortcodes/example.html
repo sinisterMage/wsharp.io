@@ -1,0 +1,31 @@
+{{- /* Show a program from the compiler's own examples directory, vendored into
+       assets/examples by scripts/sync-examples.sh so that CI needs no checkout
+       of WSharp. Usage: {{< example "status.ws" >}}
+       Optional second argument trims the leading comment header. */ -}}
+{{- $name := .Get 0 -}}
+{{- $res := resources.Get (printf "examples/%s" $name) -}}
+{{- with $res -}}
+    {{- $code := .Content -}}
+    {{- if eq ($.Get 1) "body" -}}
+        {{- /* Drop the teaching header: the page prose says it instead. */ -}}
+        {{- $lines := split $code "\n" -}}
+        {{- $out := slice -}}
+        {{- $started := false -}}
+        {{- range $lines -}}
+            {{- if and (not $started) (not (or (hasPrefix . "//") (eq (trim . " ") ""))) -}}
+                {{- $started = true -}}
+            {{- end -}}
+            {{- if $started }}{{ $out = $out | append . }}{{ end -}}
+        {{- end -}}
+        {{- $code = delimit $out "\n" -}}
+    {{- end -}}
+<div class="codeblock" data-lang="wsharp">
+    <div class="codeblock__label">
+        <span>examples/{{ $name }}</span>
+        <span>W#</span>
+    </div>
+    {{- highlight (trim $code "\n") "zig" "" -}}
+</div>
+{{- else -}}
+    {{- errorf "example shortcode: no such file assets/examples/%s (run scripts/sync-examples.sh)" $name -}}
+{{- end -}}

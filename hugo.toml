@@ -1,0 +1,53 @@
+baseURL         = "https://wsharp.io/"
+languageCode    = "en-GB"
+title           = "W#"
+enableGitInfo   = true
+enableRobotsTXT = true
+
+# Hugo renders `_index.md` sections; drop the taxonomy machinery we do not use.
+disableKinds = ["taxonomy", "term"]
+
+[params]
+  description    = "A compiled language built on multiple dispatch, for services, tools and long-running processes."
+  repo           = "https://github.com/sinisterMage/WSharp"
+  sharpieRepo    = "https://github.com/sinisterMage/sharpie"
+  foundryRepo    = "https://github.com/sinisterMage/Foundry"
+  siteRepo       = "https://github.com/sinisterMage/wsharp.io"
+  version        = "0.1.1"
+  sharpieVersion = "0.1.1"
+  author         = "Ofek Bickel"
+
+[[params.nav]]
+  name = "Install"
+  url  = "/docs/install/"
+[[params.nav]]
+  name = "Tour"
+  url  = "/docs/tour/"
+[[params.nav]]
+  name = "Reference"
+  url  = "/docs/reference/"
+[[params.nav]]
+  name = "Library"
+  url  = "/docs/stdlib/"
+
+[markup]
+  [markup.highlight]
+    # Emit CSS classes rather than inline styles, so one build serves both themes.
+    noClasses = false
+    tabWidth  = 4
+    lineNos   = false
+    guessSyntax = false
+  [markup.goldmark.renderer]
+    unsafe = true
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel   = 3
+
+[outputs]
+  home = ["html", "rss", "json"]
+
+[taxonomies]
+
+[services]
+  [services.rss]
+    limit = 20

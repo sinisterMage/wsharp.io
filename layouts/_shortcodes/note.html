@@ -1,0 +1,4 @@
+<div class="note">
+{{- with .Get "title" }}<span class="note__title">{{ . }}</span>{{ end -}}
+{{ .Inner | .Page.RenderString (dict "display" "block") }}
+</div>

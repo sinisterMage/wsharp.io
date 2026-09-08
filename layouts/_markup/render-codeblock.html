@@ -1,0 +1,37 @@
+{{- /*
+    Chroma has no W# lexer, and writing one means a Go build. Zig's is a close
+    fit and the compiler's own README already alternates the two fences for the
+    same code: `const` `var` `fn` `pub` `struct` `try` `catch` `orelse`,
+    `error.Name`, `@import`, `//` comments, `0xff`/`0b1010`/`1_000_000` and the
+    `for (xs) |x, i|` capture syntax all tokenise correctly. The label the
+    reader sees still says W#, and `wsharp-tokens.js` repaints the few tokens
+    Zig has no idea about.
+*/ -}}
+{{- $lang := .Type | default "" | lower -}}
+{{- $label := "" -}}
+{{- $isWsharp := false -}}
+
+{{- if in (slice "wsharp" "ws" "w#") $lang -}}
+    {{- $lang = "zig" -}}{{- $label = "W#" -}}{{- $isWsharp = true -}}
+{{- else if in (slice "sh" "shell" "bash" "console") $lang -}}
+    {{- $label = "Shell" -}}
+{{- else if eq $lang "toml" -}}{{- $label = "TOML" -}}
+{{- else if eq $lang "yaml" -}}{{- $label = "YAML" -}}
+{{- else if eq $lang "nginx" -}}{{- $label = "nginx" -}}
+{{- else if eq $lang "text" -}}{{- $label = "Output" -}}
+{{- else if $lang -}}{{- $label = $lang -}}
+{{- end -}}
+
+<div class="codeblock"{{ if $isWsharp }} data-lang="wsharp"{{ end }}>
+    {{- if or $label .Attributes.file -}}
+    <div class="codeblock__label">
+        <span>{{ with .Attributes.file }}{{ . }}{{ else }}{{ $label }}{{ end }}</span>
+        {{- if and .Attributes.file $label }}<span>{{ $label }}</span>{{ end -}}
+    </div>
+    {{- end -}}
+    {{- if $lang -}}
+        {{- highlight (trim .Inner "\n") $lang .Options -}}
+    {{- else -}}
+        <pre><code>{{ trim .Inner "\n" }}</code></pre>
+    {{- end -}}
+</div>

@@ -1,0 +1,28 @@
+{{- $docs := site.GetPage "/docs" -}}
+<header class="masthead">
+    <div class="masthead__inner">
+        <a class="wordmark" href="/">W<span class="sharp">#</span></a>
+        <span class="masthead__version">{{ site.Params.version }}</span>
+
+        {{- if not .IsHome }}
+        <button class="icon-button nav-toggle" type="button"
+                aria-expanded="false" aria-controls="sidebar">Contents</button>
+        {{- end }}
+
+        <nav>
+            {{- range site.Params.nav }}
+            <a href="{{ .url }}"{{ if hasPrefix $.RelPermalink .url }} aria-current="true"{{ end }}>{{ .name }}</a>
+            {{- end }}
+        </nav>
+
+        <div class="search">
+            <label class="visually-hidden" for="search-input">Search the documentation</label>
+            <input id="search-input" type="search" placeholder="Search" autocomplete="off"
+                   spellcheck="false" data-search-index="/index.json">
+            <div class="search__results" id="search-results" role="listbox" aria-label="Search results"></div>
+        </div>
+
+        <button class="icon-button" type="button" id="theme-toggle"
+                aria-label="Switch between light and dark">Theme</button>
+    </div>
+</header>

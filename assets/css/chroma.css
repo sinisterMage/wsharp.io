@@ -1,0 +1,87 @@
+/* Syntax colours.
+ *
+ * Five hues and no more: grey for comments, the site accent for keywords, teal
+ * for types, green for strings, plum for numbers, constants and builtins.
+ * Everything else is body ink, because most of a program is names and
+ * punctuation and colouring those is noise.
+ *
+ * The classes are Chroma's. W# is highlighted with Zig's lexer; see
+ * layouts/_markup/render-codeblock.html for why.
+ */
+
+:root {
+    --syn-comment: #7d8496;
+    --syn-keyword: #4c3fcf;
+    --syn-type:    #0e7490;
+    --syn-string:  #17724f;
+    --syn-literal: #8b2fa8;
+    --syn-error:   #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --syn-comment: #6e7488;
+        --syn-keyword: #9a90ff;
+        --syn-type:    #55c2d6;
+        --syn-string:  #63c79b;
+        --syn-literal: #d29bf0;
+        --syn-error:   #f87171;
+    }
+}
+
+:root[data-theme="light"] {
+    --syn-comment: #7d8496; --syn-keyword: #4c3fcf; --syn-type: #0e7490;
+    --syn-string: #17724f; --syn-literal: #8b2fa8; --syn-error: #b91c1c;
+}
+:root[data-theme="dark"] {
+    --syn-comment: #6e7488; --syn-keyword: #9a90ff; --syn-type: #55c2d6;
+    --syn-string: #63c79b; --syn-literal: #d29bf0; --syn-error: #f87171;
+}
+
+.highlight { margin: 0; }
+.chroma { background: none; color: var(--ink); }
+
+/* Comments. The W# examples carry their explanation in these, so they have to
+   stay readable rather than fade out. */
+.chroma .c, .chroma .ch, .chroma .cm, .chroma .c1,
+.chroma .cs, .chroma .cp, .chroma .cpf { color: var(--syn-comment); }
+
+/* Keywords: const, var, fn, pub, return, if, while, for, try, catch, orelse. */
+.chroma .k, .chroma .kd, .chroma .kn, .chroma .kp,
+.chroma .kr { color: var(--syn-keyword); }
+
+/* Types: i8 through u64, f64, bool, void, and the two abstract ones that
+   nav.js repaints, Number and Integer. */
+.chroma .kt { color: var(--syn-type); }
+
+/* Constants and literals: true, false, null, undefined, and every number. */
+.chroma .kc, .chroma .m, .chroma .mb, .chroma .mf,
+.chroma .mh, .chroma .mi, .chroma .mo { color: var(--syn-literal); }
+
+/* Builtins: @import, @spawn, @join. */
+.chroma .nb, .chroma .bp { color: var(--syn-literal); }
+
+/* Strings, and the escapes inside them. */
+.chroma .s, .chroma .sa, .chroma .sb, .chroma .sc, .chroma .dl,
+.chroma .sd, .chroma .s2, .chroma .sh, .chroma .si, .chroma .sx,
+.chroma .sr, .chroma .s1, .chroma .ss { color: var(--syn-string); }
+.chroma .se { color: var(--syn-literal); }
+
+/* Names, operators and punctuation stay body ink. Function definitions get
+   weight rather than colour. */
+.chroma .n, .chroma .na, .chroma .nn, .chroma .nv,
+.chroma .nx, .chroma .o, .chroma .ow, .chroma .p { color: inherit; }
+.chroma .nf, .chroma .nc { color: inherit; font-weight: 700; }
+
+.chroma .err { color: var(--syn-error); }
+
+/* Shell prompts and diff-ish generic output. */
+.chroma .gp { color: var(--ink-faint); user-select: none; }
+.chroma .gd { color: var(--syn-error); }
+.chroma .gi { color: var(--syn-string); }
+.chroma .ge { font-style: italic; }
+.chroma .gs { font-weight: 700; }
+
+/* Line numbers, if a page ever turns them on. */
+.chroma .lnt, .chroma .ln { color: var(--ink-faint); margin-right: 0.6em; }
+.chroma .hl { background: var(--accent-sub); display: block; }
