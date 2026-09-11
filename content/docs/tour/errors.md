@@ -79,12 +79,18 @@ const v = risky(n) catch |e| if (e == error.Negative) 0 else -1;
 | `try f()` | the payload, or return this error from the current function |
 | `f() catch 0` | the payload, or `0` |
 | `f() catch \|e\| ...` | the payload, or an expression with the error bound |
+| `f() catch \|e\| return e` | the payload, or hand this error on |
 | `f() catch return false` | `catch` takes any expression, including a `return` |
 | `f() catch { log(); 0 }` | including a block, whose last expression is its value |
 
 `try` propagates, so a function that uses it has to be fallible itself. That is
 why `average` in the example is declared `!i64`: it calls `checked_div` with
 `try`, and `checked_div` can fail.
+
+**A caught error can be handed on.** `catch |e| ... return e` is how a function
+handles one case and passes the rest along, and it is held to the same declared set
+`try` is. An `error` value and an `!T` share their first slot, so this is one move
+rather than a constructor.
 
 ## Coercion into either
 
@@ -95,6 +101,10 @@ one, so `return n;` is legal in a function declared `!i64` and in one declared
 The same rule covers subtyping: a subtype coerces into its supertype, because
 both are one pointer and a subtype's layout begins with a byte-identical copy of
 its supertype's. That is [the next page](/docs/tour/structs/).
+
+The steps **compose**, so `return Sub{ .. };` is legal in a function declared
+`!Base`, and `!?T` is a type worth writing: a value, nothing, or a failure, in one
+return.
 
 ## What panics rather than returning an error
 

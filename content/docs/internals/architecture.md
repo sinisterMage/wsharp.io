@@ -91,15 +91,28 @@ works out which file a span fell in.
 ## Frame pointers are not optional
 
 `.cargo/config.toml` sets `-Cforce-frame-pointers=yes` for the whole workspace.
-The collector walks the frame-pointer chain out of the runtime to find its roots,
-and the chain has to be unbroken through the Rust frames as well as the generated
-ones. Removing it produces a build that compiles and then collects the wrong
-objects.
+The collector walks frames out of the runtime to find its roots, and it needs every
+frame between itself and the generated code it is looking for. Removing it produces
+a build that compiles and then collects the wrong objects.
+
+It is necessary and not sufficient. On Win64 a frame pointer may be established as
+`lea rbp, [rsp + n]` and nothing marks the outermost frame, so the chain is not
+followable there however it was compiled, and that half of the walk asks the unwind
+tables instead. See [the collector](/docs/internals/collector/).
 
 ## Testing
 
-212 end-to-end cases, around 40 of them negative cases checking that a bad program
+240 end-to-end cases, around 60 of them negative cases checking that a bad program
 is rejected with the right message. The whole suite runs a second time under a
 collector that collects at every allocation and validates every root, and traces
 start on the same allocation schedule in both runs so the concurrent paths are
 covered both ways.
+
+A few of those cases assert by **hanging** if they regress, which is the only way
+an assertion about a process exiting can be made: `worker_daemon_exit.ws` is
+`main` returning with a worker alive that cannot be stopped, and
+`worker_blocking_init.ws` is a blocking call inside a worker's `init`.
+
+A few others are named so that they join the subset the suite runs *built* and
+under stress, which is the only thing that drives a generated equality function's
+stack maps through serialisation.

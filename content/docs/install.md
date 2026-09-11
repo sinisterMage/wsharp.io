@@ -61,7 +61,7 @@ Releases are published on
 beside it.
 
 ```sh
-version=0.1.1
+version=0.1.5
 triple=x86_64-unknown-linux-gnu
 
 curl -fsSLO "https://github.com/sinisterMage/WSharp/releases/download/v${version}/wsharp-${version}-${triple}.tar.gz"
@@ -73,7 +73,7 @@ tar xzf "wsharp-${version}-${triple}.tar.gz"
 What comes out is a **directory, not one binary**:
 
 ```text
-wsharp-0.1.1-x86_64-unknown-linux-gnu/
+wsharp-0.1.5-x86_64-unknown-linux-gnu/
 ├── wsharp
 ├── ingot
 ├── lib/libwsharp_start.a
@@ -112,9 +112,11 @@ nix-shell --run "cargo run -p wsharp-cli -- run examples/status.ws"
 
 {{< note title="Do not remove the frame pointers" >}}
 `.cargo/config.toml` sets `-Cforce-frame-pointers=yes` for the whole workspace.
-The collector finds its roots by walking the frame-pointer chain out of the
-runtime, and the chain has to be unbroken through the Rust frames as well as the
-generated ones. A build without it compiles and then collects the wrong objects.
+The collector finds its roots by walking frames, and it needs every frame between
+itself and the generated code it is looking for. A build without it compiles and
+then collects the wrong objects. It reaches the Windows target too, and does not
+by itself make the chain followable there, which is why that half of the walk asks
+the unwind tables instead. See [the collector](/docs/internals/collector/).
 {{< /note >}}
 
 `ingot` is not built by cargo. It is a W# program, bootstrapped by the compiler
@@ -126,19 +128,24 @@ cargo run -p wsharp-cli -- build --module ingot/main -o ingot
 
 ## Platforms
 
-Three, for both the compiler and sharpie:
+Four:
 
 | Triple | |
 |---|---|
 | `x86_64-unknown-linux-gnu` | Linux on x86-64 |
 | `aarch64-apple-darwin` | macOS on Apple silicon |
 | `x86_64-apple-darwin` | macOS on Intel |
+| `x86_64-pc-windows-msvc` | Windows on x86-64 |
 
-Windows is missing on purpose rather than by omission. The compiler builds and
-links there, but `fs.mkdir_all` reports success without creating the last
-component of a path, so `ingot install` fails for any package with a `src/`
-directory. Shipping that would be shipping a toolchain whose package manager does
-not work.
+Windows was out of the release matrix until `0.1.3`, and the reason recorded here
+for a long time was the wrong one. `fs.mkdir_all` was blamed and was never at
+fault; the collector's root walk was. See [status](/docs/status/).
+
+On Windows the runtime archive is named `wsharp_start.lib`, because cargo names a
+staticlib after the platform rather than after the crate, and `wsharp` looks for
+both spellings. Linking wants **clang** rather than MSVC's `cl.exe`, which does
+not understand the `-o` the linker driver passes, so set `CC=clang` if `cc` is
+not on `PATH`.
 
 Architectures other than x86-64 and aarch64 do not build at all: the collector
 reads the frame pointer with inline assembly, and everything else gets a

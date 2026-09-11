@@ -55,6 +55,18 @@ This is what lets a package of several files present one of them: a package
 presents exactly one file, the `root` in its manifest, and what else it shows is
 what that file re-exports.
 
+**Two re-exports of one name merge into one overload set**, so a facade can
+present `render` from two files:
+
+```wsharp
+pub const render = one.render;
+pub const render = two.render;
+```
+
+Only when the name this module already has is itself a re-export. A re-export
+beside a declaration of the module's own is a module shadowing its own name with a
+foreign one, and that stays a clash.
+
 ## What a program pays for
 
 A library module is read only if something imports it, so `wsharp check` on a

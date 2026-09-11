@@ -4,8 +4,8 @@ description: "What you can import, from std/str up to std/tls, and the prelude t
 weight: 50
 ---
 
-Most of the library is written in W# rather than in Rust. `std/array`,
-`std/list`, `std/math`, `std/net`, `std/http`, all of the cryptography and
+Most of the library is written in W# rather than in Rust. `std/array`, `std/list`,
+`std/map`, `std/math`, `std/net`, `std/http`, all of the cryptography and
 `str.split` are `.ws` files compiled with your program, monomorphised per element
 type and dropped when nothing calls them.
 
@@ -21,21 +21,22 @@ nothing pays for nothing.
 
 | Module | |
 |---|---|
-| `std/str` | `len` `concat` `eq` `substr` `find` `split` `join` `repeat` `starts_with` `from_int` `from_float` `byte_at` `from_byte` `parse_int` `to_lower` `trim` |
+| `std/str` | `len` `concat` `eq` `substr` `find` `split` `join` `repeat` `replace` `starts_with` `from_int` `from_float` `byte_at` `from_byte` `parse_int` `to_lower` `to_upper` `trim` `hash`. `join` and `repeat` measure, allocate once and copy, so building output from pieces is linear |
 | `std/array` | `len` `new` `concat` `push` `slice` `repeat` |
+| `std/map` | `Map[V]`, a hash table with `str` keys: `new` `with_capacity` `len` `get` `has` `set` `remove` `keys` `clear` `iter` `next`. Open addressing with tombstones, so a removal does not break the probe run other keys are reached through |
 | `std/list` | `List[T]`, a growable array: `new` `with_capacity` `from` `len` `capacity` `get` `set` `push` `pop` `insert` `remove` `extend` `clear` `iter` `next` `to_array` |
-| `std/math` | `abs` `min` `max` `sign` `sqrt` `pow` `floor` `ceil` `round` `trunc` `ipow` |
-| `std/bits` | `rotl` `rotr`, rotation, generic over `Integer`, one instruction on both targets |
+| `std/math` | `abs` `min` `max` `sign` `rem` `sqrt` `pow` `floor` `ceil` `round` `trunc` `ipow` |
+| `std/bits` | `rotl` `rotr`, rotation, generic over `Integer`, one instruction on both targets; `f64_bits` `f64_from_bits`, an `f64`'s representation, which is what a wire format carries |
 | `std/io` | `read_file` `read_line` `write_file` `exists`; the fallible ones name their errors, such as `!{NotFound, PermissionDenied, IoFailed}str` |
-| `std/fs` | `mkdir` `mkdir_all` `read_dir` `rename` `remove` `chmod` `is_executable`, and enough of a stat to tell a directory from a file and say how big one is |
+| `std/fs` | `mkdir` `mkdir_all` `read_dir` `rename` `remove` `chmod` `is_executable` `modified_at`, and enough of a stat to tell a directory from a file and say how big one is |
 | `std/path` | the arithmetic above `std/io` and `std/fs`, and it makes no syscall at all |
-| `std/os` | `args` `get` `home` `temp_dir` `cwd` `chdir` `exec` `self_exe` `target` |
+| `std/os` | `args` `get` `home` `temp_dir` `cwd` `chdir` `exec` `exit` `self_exe` `target` |
 | `std/toml` | TOML 1.0, read and written |
 | `std/time` | `now`, seconds since the Unix epoch |
-| `std/net` | TCP: `Socket` `Listener`, `connect` `listen` `accept` `read` `write` `write_all` `read_exactly` `read_all` `set_nonblocking` `close`. UDP: `Datagrams` `Peer` `Datagram`, `udp` `send_to` `receive` `reply`. Readiness: `Poller` `Event`, `poller` `watch` `wait` |
+| `std/net` | TCP: `Socket` `Listener`, `connect` `listen` `accept` `read` `write` `write_all` `read_exactly` `read_all` `set_nonblocking` `shutdown` `close`. UDP: `Datagrams` `Peer` `Datagram`, `udp` `send_to` `receive` `reply`. Readiness: `Poller` `Event`, `poller` `watch` `wait` |
 | `std/http` | the 27 HTTP status types, plus an HTTP/1.1 client and server: `get` `post` `request` `read_request` `respond` `header` `status_of`, and `https://` over `std/tls` |
 | `std/broker` | `Topic[M]` `Consumer[M]`, `topic` `publish` `subscribe` `next` `commit` `seek` `len` |
-| `std/bytes` | `[]u8` as a buffer and the bridge to and from `str`: `new` `of` `to_str` `slice` `concat` `copy` `fill` `xor` `equal`, the big- and little-endian word accessors, `to_hex` `from_hex` |
+| `std/bytes` | `[]u8` as a buffer and the bridge to and from `str`: `new` `of` `to_str` `slice` `concat` `copy` `fill` `xor` `equal`, the big- and little-endian word accessors, `to_hex` `from_hex`; and `Buf`, which grows, with `open8`/`close8` through `open32`/`close32` for a length written before what it counts |
 | `std/inflate` | DEFLATE decompression, which is what makes a git packfile and a `.tar.gz` readable |
 | `std/hash` | SHA-256, SHA-384 and SHA-512, one-shot and incremental, plus `hmac` `hkdf_extract` `hkdf_expand` |
 | `std/cipher` | ChaCha20, Poly1305, ChaCha20-Poly1305; AES-128/256, GHASH, AES-GCM. Constant-time by construction |

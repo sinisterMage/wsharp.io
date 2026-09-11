@@ -22,14 +22,30 @@ contents, so a string built at run time equals a literal.
 | `substr(s, from, to) str` | half-open, so `substr(s, 0, len(s))` is `s` |
 | `find(haystack, needle) i64` | the index, or `-1` |
 | `split(s, sep) []str` | |
-| `join(parts, sep) str` | |
-| `repeat(s, n) str` | |
+| `join(parts, sep) str` | linear: it measures, allocates once and copies |
+| `repeat(s, n) str` | the same shape |
+| `replace(s, from, to) str` | two passes, so it is linear by construction |
 | `starts_with(s, prefix) bool` | |
 | `from_int(i64) str`, `from_float(f64) str` | |
 | `parse_int(s) !i64` | |
 | `byte_at(s, i) u8`, `from_byte(u8) str` | |
-| `to_lower(s) str` | |
+| `to_lower(s) str`, `to_upper(s) str` | |
 | `trim(s) str` | leading and trailing whitespace |
+| `hash(s) u64` | FNV-1a with the SplitMix64 finaliser, which is what `std/map` keys on |
+
+### join and repeat are linear
+
+Both were `concat` in a loop, which copies the accumulator on every iteration.
+Joining 150,000 pieces into 600 KB took 9.4 seconds. They measure, allocate once
+and copy now, and the same call takes about 0.08 seconds with compilation
+included.
+
+That matters because building output from pieces is what a program does. Before
+the fix, `bytes.Buf` was around 190 times faster at the same job, so anything that
+reached for the obvious spelling was paying for it.
+
+`str.hash` is a builtin rather than W#, because hashing in W# would be one
+`str.byte_at` per byte and therefore one stack walk per byte under `--gc-stress`.
 
 ## Using it
 

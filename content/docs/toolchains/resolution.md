@@ -24,7 +24,7 @@ sharpie show
 ```text
 home	/home/you/.sharpie
 target	x86_64-unknown-linux-gnu
-toolchain	0.1.1-x86_64-unknown-linux-gnu	default
+toolchain	0.1.5-x86_64-unknown-linux-gnu	default
 directory	/home/you/project
 ```
 
@@ -38,7 +38,7 @@ falling through to the next one. Quietly running a different compiler than the o
 that was asked for, and saying nothing about it, is worse than refusing.
 
 So `wsharp +0.1.0 build x.ws` with `0.1.0` not installed is an error, not a build
-with `0.1.1`.
+with `0.1.5`.
 
 ## Pinning a project
 

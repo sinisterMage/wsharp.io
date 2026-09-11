@@ -79,7 +79,8 @@ overload set, whose members all land in one group and generalise together.
 
 ## Abstract types are generics with a constraint
 
-`Number` and `Integer` are covered on [the dispatch page](/docs/tour/dispatch/),
+`Number`, `Integer` and `Signed` are covered on
+[the dispatch page](/docs/tour/dispatch/),
 but they belong here too. A parameter annotated with an abstract type is a generic
 parameter constrained to that type's members, compiled once per type it is used
 at. Nothing is tested at run time, because a scalar's type is always known during

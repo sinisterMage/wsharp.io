@@ -14,7 +14,7 @@ TCP, UDP and readiness, over the syscalls the runtime declares by hand. IPv4 or
 IPv6, with the family the resolver's choice.
 
 **TCP.** `Socket` and `Listener`, with `connect` `listen` `accept` `read` `write`
-`write_all` `read_exactly` `read_all` `set_nonblocking` `close`.
+`write_all` `read_exactly` `read_all` `set_nonblocking` `shutdown` `close`.
 
 **UDP.** `Datagrams` `Peer` and `Datagram`, with `udp` `send_to` `receive`
 `reply`.
@@ -37,6 +37,25 @@ A blocking read is safe rather than merely tolerated: a builtin that blocks does
 so inside a safe region, so the collector can walk this worker's stack and run its
 pauses while the thread waits on the network. `net.poller` is for serving many
 connections from **one** worker, not for keeping the collector alive.
+
+### shutdown, and stopping an acceptor
+
+`shutdown(s, read, write)` is the half-close `close` cannot say, and what a
+protocol that does not frame its own end needs. Two bools rather than a constant,
+as `watch` takes two, because shutting down *neither* direction is the one
+combination `shutdown(2)` cannot spell, and here it does nothing rather than being
+given an invented meaning.
+
+**On a connected socket it means the same thing on every system. On a `Listener`
+it does not**, which is why there is no `shutdown_listener`: Linux wakes a thread
+parked in `accept`, and the BSDs answer `ENOTCONN` and leave it parked. So it is
+not promised there.
+
+An acceptor that has to be stoppable is a `poller` with a tick, and the stop
+signal is whatever the program already has, a `std/broker` topic being the usual
+one because it crosses heaps. `@join` on a worker parked in `accept` waits for
+ever, which is a program waiting on its own worker. `main` returning ends the
+process and takes such a worker with it. See [workers](/docs/tour/workers/).
 
 ## std/http
 

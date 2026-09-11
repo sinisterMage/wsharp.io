@@ -44,6 +44,42 @@ const total = orders.add(i) catch |e| if (e == error.WorkerDied) -1 else -2;
 
 `@join` waits for the worker and is fallible for the same reason.
 
+## Two promises about starting
+
+Both of these are promises rather than implementation details, because what a
+program can be written to look like rests on them.
+
+**`@spawn` returns before `init` starts.** The caller does not wait for the new
+thread to get going.
+
+**A worker serves its queue only once `init` has returned.** So a call issued
+straight after `@spawn` queues rather than being lost, and it is answered as soon
+as the state exists.
+
+## A module whose init never returns is a daemon
+
+The second promise has a consequence worth reaching for. A module whose `init`
+never returns is a **self-driving worker**: it does its own work in its own thread
+and answers nobody. That is how several acceptors come to share one listener in a
+few lines.
+
+Such a worker has never dequeued anything, so it can never be told to stop. That
+is what decides the exit:
+
+**`main` returning ends the process.** The exit path stops the workers that
+reached their message loop and waits for them, and abandons the ones that never
+could. A distinction rather than a timeout, so an ordinary program's exit stays
+deterministic and a worker in the middle of a method still finishes.
+
+`os.exit(code)` is the way out from anywhere else, including from inside a worker,
+and it **stops nothing**: an exit a worker can block is not an exit.
+
+`@join` on a worker parked in `accept` still waits for ever, and should. That is a
+program waiting on its own worker rather than anything the exit path can answer
+for. A stoppable acceptor is a `net.poller` with a tick, and
+[`net.shutdown`](/docs/stdlib/net/) on a *listening* socket is not portable enough
+to be the answer.
+
 ## The broker
 
 RPC is for when the caller needs the answer. `std/broker` is for when it does

@@ -62,6 +62,47 @@ installing is checked against a hash somebody's CI already verified.
 **sharpie**, the version manager, is the second real program written in W#. See
 [toolchains](/docs/toolchains/).
 
+**Windows is a release target**, so there are four of them. It had been out since
+the first release, and the reason written down here was the wrong one.
+`fs.mkdir_all` was blamed and was never at fault: the collector's root walk
+followed the frame pointer across the Rust frames, which Win64 neither promises nor
+provides, so it found no roots at all and freed the live heap. It crosses those
+frames with the unwind tables now, and takes its capture inside the frame it
+describes rather than after that frame has been popped.
+
+`0.1.3` put the arm back with the bug still in it, because `cargo test` passed on
+Windows and had for two releases. What caught it was the first W# program anyone
+ran from a Windows shell rather than from a test harness. `0.1.4` is the fix, and
+nothing else changed in it. [The collector](/docs/internals/collector/) has the
+detail.
+
+**The edge cases two real programs found.** One was a database wire-protocol
+driver in pure W#, the other an MVC framework's design, and both were written
+*against* the language rather than in it: every "can W# do this?" was settled by
+running the compiler. Each ended with a list of what it had worked around, and
+both lists are closed.
+
+Between them: coercions that compose, so `!?T` is a type worth writing; `%` on
+`f64`; `Signed`, so `math.abs` is one definition; any integer type indexing;
+`g[i][j] = v`; re-raising a caught error with `return e`; a supertype reached
+through the module that declares it; `check` that monomorphises; `--emit=api`,
+the one emit with a promise attached; `std/map`; a linear `str.join`;
+`net.shutdown` and `os.exit`; `fs.modified_at`; `==` on a struct; and `main`
+returning ending the process.
+
+Three compiler bugs came out with them, and none of them said anything. One
+compiled a dispatched call on an argument nothing had pinned into a static call to
+the most specific overload, so three subtypes held at their supertype all printed
+what the most specific one said. One let a conversion inside a body annotated with
+an abstract type pin that parameter, which with a second overload beside it got
+past inference and handed the code generator a `u8` where an `i64` was declared.
+And a worker's `init` ran with its arguments pinned on the runtime's root list, so
+any blocking call inside it parked with runtime roots on the thread, which is the
+shape every acceptor has.
+
+Items 13 and 14 of [ROADMAP.md]({{< param repo >}}/blob/main/ROADMAP.md) are the
+write-ups.
+
 ## What is left
 
 The honest list of what does not work is on
@@ -78,6 +119,10 @@ worth recording, and what each left open, is in
 |---|---|---|
 | `0.1.0` | 7 September 2026 | The first release. `wsharp`, `ingot`, and `lib/libwsharp_start.a` |
 | `0.1.1` | 8 September 2026 | ingot learns a registry: version dependencies resolve out of Foundry, `INGOT_REGISTRY`, and the verbs `update` and `search` |
+| `0.1.2` | 8 September 2026 | The edge cases a wire-protocol driver found: coercions compose, `%` on `f64`, `Signed`, any integer type indexes, `g[i][j] = v`, `catch return e`, a supertype as a path, and `check` that monomorphises |
+| `0.1.3` | 9 September 2026 | Windows back in the release matrix, the first release with four targets |
+| `0.1.4` | 9 September 2026 | `0.1.3` with a root walk that reads a frame while it is still there, which is what the Windows arm had been missing all along |
+| `0.1.5` | 10 September 2026 | `--emit=api`, `std/map`, `==` on a struct, a linear `str.join` and `str.repeat`, `net.shutdown`, `os.exit`, `fs.modified_at`, `str.to_upper`, `str.replace`, and `main` returning ends the process |
 
 Release notes live on
 [the releases page]({{< param repo >}}/releases).

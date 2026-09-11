@@ -24,6 +24,13 @@ const bytes = @import("std/bytes");
 | `fill(b, v)`, `xor(a, b)`, `equal(a, b) bool` | |
 | big- and little-endian word accessors | reading and writing `u16`/`u32`/`u64` at an offset |
 | `to_hex(b) str`, `from_hex(s) []u8` | |
+| `Buf`, which grows | `put_str` `put_bytes` `taken` `reset` |
+| `open8`/`close8` through `open32`/`close32` | a length written before the thing it counts |
+
+The `open`/`close` pair is for a frame whose length prefix cannot be known until
+the body has been written: `open` reserves the field and hands back a mark, and
+`close` goes back and fills it in. Four widths, because TLS needs 8, 16 and 24 and
+a PostgreSQL frame header needs 32.
 
 ## std/hash
 

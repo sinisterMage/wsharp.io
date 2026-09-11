@@ -13,7 +13,7 @@ disableKinds = ["taxonomy", "term"]
   sharpieRepo    = "https://github.com/sinisterMage/sharpie"
   foundryRepo    = "https://github.com/sinisterMage/Foundry"
   siteRepo       = "https://github.com/sinisterMage/wsharp.io"
-  version        = "0.1.1"
+  version        = "0.1.5"
   sharpieVersion = "0.1.1"
   author         = "Ofek Bickel"
 

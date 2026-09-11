@@ -39,12 +39,16 @@ xs[0]                        // a value, and a place: xs[0] += 1 works
 for (xs) |x, i| { }
 ```
 
-An index outside the array panics. An array index is an `i64`; every literal index
-works without saying so, and `i64(i)` covers the rest.
+An index outside the array panics. **Any integer type indexes**, because an index
+is an `i64` at the machine level and the widening is emitted where it is used.
+Conversions between numeric types are written and never inferred, and this is not
+that: an index is not a value the program keeps, it is an argument to one
+operation whose type is fixed. A `u64` past `i64`'s range arrives negative and is
+caught anyway, because the bounds check is one *unsigned* compare.
 
-`g[i][j] = v` is rejected, because the base of a place must be a variable or a
-field chain. Write `var row = g[i]; row[j] = v;`, which is correct rather than
-merely accepted, since an array is a reference.
+`g[i][j] = v` works. The base of a place is evaluated once into a hidden local, so
+a compound assignment can read the place and write it back without the base
+appearing twice.
 
 For a growable sequence, use [`std/list`](/docs/stdlib/collections/).
 
@@ -96,26 +100,62 @@ const Sub = struct : Base { extra: i64 };
 so a subtype widens into its supertype with no conversion emitted, and a field
 read compiled against the supertype runs unchanged on any subtype.
 
-The supertype is resolved as a bare name rather than a path, so a subtype of
-another module's type has to be declared in that module. That is
-[a limitation](/docs/limitations/).
+The supertype is a **type expression**, as every other type position is, so
+`struct Sub : pkg.Base` and `struct Sub : inner.Base` both work. Aliasing runs
+first, so a facade's name for a type reaches the same type as the original, and
+the two produce siblings rather than two separate lattices.
+
+## Struct equality
+
+`==` on a struct compares it **field by field**, each field by its own type's
+rule, so a struct field recurses and an `f64` field makes a `NaN` unequal to
+itself.
+
+Two values of different concrete types are never equal. That is what makes two
+subtypes compared through their supertype compare the fields they actually have
+rather than only the part the supertype declares, and it is also why `x == x` is
+true whatever `x` holds: the same object is tested for first.
+
+Every field has to be comparable in its own right: an integer type, `f64`, `bool`,
+`str`, an error, an optional of one of those, or a struct whose own fields are all
+of those. An **array**, a **function** or an **error union** field makes the whole
+struct uncomparable, and the compiler says which field.
+
+That reaches down the lattice, because a comparison written at a supertype has to
+work on every subtype it will be handed: a subtype with a field `==` cannot
+compare makes the *supertype* uncomparable too, and the diagnostic says which
+subtype and which field.
+
+A value that reaches itself recurses for ever, as derived equality does everywhere
+it exists, and that is [on the list](/docs/limitations/).
+
+The comparison is compiled into a *function* per concrete type rather than an
+inline sequence, because a type that reaches itself would otherwise expand for
+ever during compilation.
 
 ## Abstract types
 
-`Number` stands for every numeric type. `Integer` stands for the eight integer
-ones. They exist to be written in a parameter position:
+Three, and they exist to be written in a parameter position:
+
+| | |
+|---|---|
+| `Number` | every numeric type: `i8` through `u64`, and `f64` |
+| `Integer` | the eight integer ones |
+| `Signed` | the four signed integers |
 
 ```wsharp
 fn show(x: Integer) str { ... }
 ```
 
 They are ordered by their member sets, so `Integer` is more specific than
-`Number`. An abstract type is never the type of a value: a parameter annotated
-with one is a generic parameter constrained to the members, compiled once per type
-it is used at, with nothing tested at run time.
+`Number` and wins wherever both apply. An abstract type is never the type of a
+value: a parameter annotated with one is a generic parameter constrained to the
+members, compiled once per type it is used at, with nothing tested at run time.
 
 A body annotated `Number` has to work for every type it lists, so it may not use
-`%` or negate.
+a bit operator (`f64` has no bit pattern to ask for) or negate (no unsigned
+negatives). `Integer` and `Signed` are what such bodies claim instead, which is
+why `std/math`'s `abs` and `sign` are one definition over `Signed`.
 
 ## What coerces into what
 
@@ -128,6 +168,16 @@ Three coercions, and no others:
 All three are free. `return n;` is legal in a function declared `!i64` for the
 first two reasons, and passing a `Finished` where an `Event` is wanted works for
 the third.
+
+**They compose.** A coercion is a sequence of steps and the wrapping step
+recurses, so `Sub` reaches `!Base` by widening and then wrapping, and `T` reaches
+`!?T` by wrapping twice. That is what makes `!?T` a type worth writing: a value,
+nothing, or a failure, in one return.
+
+`!?T` is three machine words, over the two x86-64 hands back, so a return that
+wide goes through a pointer the caller provides. It is an ordinary parameter
+placed after the environment, not Cranelift's `StructReturn`, because W# owns both
+sides of every call.
 
 Numeric conversions are not coercions. They are written.
 

@@ -27,7 +27,7 @@ without asking: `print`, `print_int`, `print_uint`, `print_float`, `print_bool`,
 
 ```sh
 wsharp run   hello.ws            # compile in memory and run main
-wsharp check hello.ws            # type-check only
+wsharp check hello.ws            # everything but the code generation
 wsharp build hello.ws -o hello   # compile to a native executable
 ```
 
@@ -35,6 +35,10 @@ wsharp build hello.ws -o hello   # compile to a native executable
 something. `build` writes a real program: the collector, the workers, TLS and the
 rest of the runtime are linked into it, and it needs no compiler on the machine
 that runs it.
+
+`check` goes as far as monomorphisation and stops before code generation, so it
+**accepts exactly what `run` accepts**. A file with no `main` is a library and is
+fine to check.
 
 Anything after the file belongs to your program rather than to the compiler, and
 reaches it through `std/os`:
@@ -62,11 +66,17 @@ moment a type error surprises you.
 
 ```sh
 wsharp check examples/inference.ws --emit=types    # inferred signatures
+wsharp check examples/fib.ws       --emit=api      # the declared surface, versioned
 wsharp check examples/fib.ws       --emit=ast      # parsed syntax tree
 wsharp check examples/fib.ws       --emit=tokens
 wsharp run   examples/fib.ws       --emit=hir      # typed, monomorphised IR
 wsharp run   examples/fib.ws       --emit=clif     # generated Cranelift IR
 ```
+
+Only one of those carries a promise. `--emit=api` is versioned, is printed after
+type checking, and prints every name a program defines absolute, which is what a
+tool that *generates* W# reads. Everything else on that list can change under you.
+See [the wsharp command](/docs/reference/cli/).
 
 `--emit=types` prints one line per top-level function, so an overload set shows up
 as several:

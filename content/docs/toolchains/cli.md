@@ -53,8 +53,8 @@ sharpie install 0.1.0
 ```
 
 ```text
-installed	0.1.1-x86_64-unknown-linux-gnu
-default	0.1.1-x86_64-unknown-linux-gnu
+installed	0.1.5-x86_64-unknown-linux-gnu
+default	0.1.5-x86_64-unknown-linux-gnu
 ```
 
 `already` replaces `installed` when the toolchain is present. The `default` record
@@ -67,7 +67,7 @@ Re-asks the channel this installation follows and installs what it now names.
 An exact version is left alone.
 
 ```text
-current	stable	0.1.1-x86_64-unknown-linux-gnu
+current	stable	0.1.5-x86_64-unknown-linux-gnu
 ```
 
 ### uninstall
@@ -85,7 +85,7 @@ What would run in this directory, and which rung of
 ```text
 home	/home/you/.sharpie
 target	x86_64-unknown-linux-gnu
-toolchain	0.1.1-x86_64-unknown-linux-gnu	default
+toolchain	0.1.5-x86_64-unknown-linux-gnu	default
 directory	/home/you/project
 ```
 
@@ -110,7 +110,7 @@ sharpie toolchain link dev ../WSharp/target/release
 ```
 
 ```text
-installed	0.1.1-x86_64-unknown-linux-gnu	default
+installed	0.1.5-x86_64-unknown-linux-gnu	default
 installed	0.1.0-x86_64-unknown-linux-gnu
 linked	dev	/home/you/WSharp/target/release
 ```

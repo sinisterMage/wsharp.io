@@ -77,11 +77,15 @@ variables once it has generalised. Mutual recursion works for the same reason.
 
 ## Abstract types are constrained generics
 
-A parameter annotated `Number` or `Integer` is a generic parameter restricted to
-that type's members, compiled once per type it is used at. Nothing is tested at
-run time. The difference from an unannotated parameter is that the accepted set is
-written down and checked, and that the parameter can then take part in
-[dispatch](/docs/reference/dispatch/).
+A parameter annotated `Number`, `Integer` or `Signed` is a generic parameter
+restricted to that type's members, compiled once per type it is used at. Nothing
+is tested at run time. The difference from an unannotated parameter is that the
+accepted set is written down and checked, and that the parameter can then take
+part in [dispatch](/docs/reference/dispatch/).
+
+A conversion inside such a body does not narrow it. `fn f(v: Integer) { .. i64(v)
+.. }` stays generic over all eight, and is compiled once for each width a caller
+uses.
 
 ## When inference needs help
 
@@ -89,5 +93,5 @@ written down and checked, and that the parameter can then take part in
 nothing else in the program to say. The error is
 `cannot tell what type main is being used at`. Pin it with an annotation or a use.
 
-This case passes `wsharp check` and fails `wsharp run`, because `check` does not
-monomorphise. See [limitations](/docs/limitations/).
+`wsharp check` reports it too. `check` goes as far as monomorphisation, which is
+exactly where the question is asked, so it accepts what `run` accepts.

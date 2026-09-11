@@ -82,8 +82,8 @@ compare. No vtable, no inline cache, no method-table lookup, and no hash.
 ## Overloading is not only for structs
 
 An **abstract type** stands for a set of concrete ones. `Number` is every numeric
-type and `Integer` is the eight integer ones, so a general case can sit beside a
-specific one:
+type, `Integer` the eight integer ones and `Signed` the four signed ones, so a
+general case can sit beside a specific one:
 
 ```wsharp
 fn show(x: i64)     str { return "an integer"; }
@@ -92,11 +92,16 @@ fn show(x: Number)  str { return "a number"; }   // catches f64
 ```
 
 Abstract types are ordered by their member sets, so `Integer` is more specific
-than `Number` and wins wherever both apply.
+than `Number` and wins wherever both apply, and `Signed` beats both.
 
 A body annotated `Number` has to work for *every* type it lists, which is why it
-may not use `%` (there is no float form) or negate (there are no unsigned
-negatives). `Integer` is what such a body should claim.
+may not use a bit operator (`f64` has no bit pattern to ask for) or negate (there
+are no unsigned negatives). `Integer` and `Signed` are what such bodies claim
+instead, which is why `std/math`'s `abs` and `sign` are one definition over
+`Signed` rather than an overload set.
+
+A conversion inside such a body does not narrow it: `fn f(v: Integer) { .. i64(v)
+.. }` stays generic over all eight widths.
 
 An abstract type classifies values for dispatch and is never one itself. A
 parameter annotated with it is a generic parameter constrained to the members,

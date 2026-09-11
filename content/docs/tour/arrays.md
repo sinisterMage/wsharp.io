@@ -40,8 +40,16 @@ header and there is no capacity beside it, so `array.push` allocates a whole new
 array every call. That is fine for building something once and wrong for a loop,
 which is what the next section is about.
 
-An array index is an `i64`. Every literal index works without saying so, and
-`i64(i)` covers the rest.
+**Any integer type indexes.** An index is an `i64` at the machine level and the
+widening is emitted where it is used, so a `u8` loop counter needs no conversion.
+That is not a hole in the rule that numeric conversions are written: an index is
+not a value the program keeps, it is an argument to one operation whose type is
+fixed. A `u64` past `i64`'s range arrives negative and is caught anyway, because
+the bounds check is one unsigned compare.
+
+`g[i][j] = v` works too. The base of a place is evaluated once into a hidden local,
+so a compound assignment reads the place and writes it back without evaluating the
+base twice.
 
 ## Lists
 

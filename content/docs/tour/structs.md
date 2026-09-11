@@ -55,12 +55,10 @@ This is also what makes dispatch cheap, and the two features are the same
 feature: the lattice that widening walks is the lattice type ids are assigned
 over.
 
-{{< note title="A supertype is a name, not a path" >}}
-`struct : Base` resolves `Base` unqualified, so a subtype of a type another
-module declares has to be declared in that module. Every other position accepts
-`pkg.Base`. This one is
-[a known limitation](/docs/limitations/) rather than a design decision.
-{{< /note >}}
+A supertype is an ordinary type expression, so `struct : pkg.Base` and
+`struct : inner.Base` work as well as a bare name. Aliasing runs first, which
+means a facade's name for a type reaches the same type as the original and the two
+produce siblings rather than two separate lattices.
 
 A struct with no fields is also a value: its sole instance. That is how the HTTP
 status types work, and it is why `http.NotFound404` can be passed as an argument
@@ -89,9 +87,36 @@ Struct instances and closures are both heap objects with the same 16-byte header
 allocated through the same entry point. That is what lets the collector trace a
 closure's captures exactly as it traces a struct's fields.
 
-## What is missing
+## Comparing two structs
 
-`==` works on the integer types, `f64`, `bool` and `str`, and not on structs.
-Whether two structs are equal when their fields are, or only when they are the
-same object, is a decision that has not been made yet rather than one that has
-been made against you.
+`==` compares a struct **field by field**, each field by its own type's rule, so a
+struct field recurses and an `f64` field makes a `NaN` unequal to itself.
+
+Two values of different concrete types are never equal. That answers the awkward
+half of "identity or structure" without the surprising part: `x == x` is true
+whatever `x` holds, because the same object is tested for first, and two subtypes
+held at their supertype compare the fields they actually have rather than only the
+part the supertype declares.
+
+```wsharp
+const a = Finished{ .at = 1, .count = 5 };
+const b = Finished{ .at = 1, .count = 5 };
+print_bool(a == b);              // true
+```
+
+An optional field compares, so an absent one differs from a present one and two
+absent ones agree. An **array**, a **function** or an **error union** field does
+not, and makes the whole struct uncomparable at compile time, with the compiler
+saying which field. That reaches down the lattice too: a subtype with such a field
+makes its supertype uncomparable, because a comparison written at the supertype is
+what will be handed the subtype.
+
+A value that reaches itself recurses for ever, as derived equality does everywhere
+it exists, and that is [on the list](/docs/limitations/).
+
+Under the hood this is a *function* per concrete type rather than an inline
+sequence, because a type that reaches itself would otherwise expand for ever
+during compilation: a dispatching entry point that answers identity, nulls and
+unequal type ids and then picks within the declared type's subtree, and an exact
+comparison per type. The field reads go through the same load barrier and the same
+rooting as every other field read, because they are built as W# would build them.

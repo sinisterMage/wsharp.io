@@ -53,9 +53,12 @@ appears in the result.
 nothing says otherwise. So `const b: u8 = 255;` needs no conversion, and `0xff`
 is a `u8` in a `u8` context and an `i64` in an `i64` one.
 
-**A float literal is never an integer, and an integer literal is never a float.**
-`1.0` has to be written where an `f64` is wanted. This is a real limitation
-rather than a rule with a reason, and it is [on the list](/docs/limitations/).
+**A float literal is never an integer, and an integer literal may be a float.**
+`const x: f64 = 1;` is legal, and so is a `1` in a body annotated `Number` that
+gets compiled at `f64` as well as at `i64`. Only for a value the `f64` *is*: above
+2^53 the integers are no longer all representable, and the check is the round trip
+rather than a range, because rounding a written constant silently is not a thing to
+do.
 
 **Conversions are written, never inferred.** `u32(x)` converts. There is no
 implicit widening between numeric types, so a mismatch is an error you fix by
@@ -88,11 +91,11 @@ elements but not of what, and the error says `cannot tell what type main is bein
 used at`. Give it something to work from, such as a use of `b` that fixes the
 element type, or an annotation.
 
-{{< note title="check and run can disagree" >}}
-That second case passes `wsharp check` and fails `wsharp run`, because `check`
-does not monomorphise and so never has to answer the question. The diagnostic is
-right; which command reports it is not, and it is
-[a known limitation](/docs/limitations/).
+{{< note title="check and run agree" >}}
+Both of those are reported by `wsharp check` as well as by `wsharp run`. `check`
+goes as far as monomorphisation, which is exactly where the second question is
+asked, so the verb whose whole job is to say whether a program is good is not the
+more permissive of the two.
 {{< /note >}}
 
 ## How it is organised, briefly

@@ -84,10 +84,10 @@ site.
 
 ## Abstract types are not this
 
-`Number` and `Integer` never reach the runtime at all. A parameter annotated with
-one is a generic parameter constrained to that type's members, compiled once per
-type it is used at. A scalar's type is always known during compilation, so there
-is nothing to test.
+`Number`, `Integer` and `Signed` never reach the runtime at all. A parameter
+annotated with one is a generic parameter constrained to that type's members,
+compiled once per type it is used at. A scalar's type is always known during
+compilation, so there is nothing to test.
 
 ## Where the lattice comes from
 

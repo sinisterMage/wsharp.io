@@ -31,12 +31,52 @@ a test, and a not-taken branch.
 ## Precise roots
 
 Every heap pointer the code generator produces is declared to Cranelift as a
-stack-map root. The collector finds them by walking the frame-pointer chain and
-looking each return address up in the emitted maps.
+stack-map root. The collector finds them by walking frames and looking each return
+address up in the emitted maps.
 
 Because the roots are precise and updatable in place, **objects can move**. That is
 what makes compaction possible at all, and it is why
 `-Cforce-frame-pointers=yes` is not negotiable.
+
+### The walk has two halves, and only the first has arms
+
+The collector starts inside a runtime function that generated code called into, so
+it has to *reach* generated code before it can walk it. Those are genuinely
+different problems and they are separate functions.
+
+**Reaching generated code** means crossing the handful of Rust frames in between,
+and this is the half with platform arms. The SysV targets follow `rbp`: every frame
+does `push rbp; mov rbp, rsp`, and the ABI requires the outermost frame pointer to
+be zero, which is what stops the walk. **Neither half holds on Win64.** A prologue
+there records its frame register in the function's *unwind info* and may establish
+it as `lea rbp, [rsp + n]`, for which `[rbp]` is a local; and nothing marks the
+outermost frame. So the Windows arm asks `RtlVirtualUnwind`, which is what the
+unwind tables are for. `-Cforce-frame-pointers=yes` does reach that target and does
+not make the chain followable.
+
+**Walking generated code** has no arms at all. Cranelift's prologue really is
+`push rbp; mov rbp, rsp` whatever the calling convention, because its x64 backend
+ignores the call conv entirely. So the half that reads stack maps cannot drift.
+
+Two things follow from the split rather than needing their own fix. A parked worker
+records the generated frame *itself*, because crossing the Rust frames needs that
+thread's own frame pointers or its own registers and a collector has neither; what
+it is handed is the far side of the crossing, which any thread may walk. And
+nothing outside a confirmed generated frame is ever dereferenced, so a broken chain
+is a stopped walk rather than a wild read.
+
+{{< note title="A walk that finds no roots" >}}
+This is the failure the project had already warned itself about, and it happened
+anyway. On Windows the old walk crossed about two Rust frames, reached no generated
+code, found **zero** roots, and then climbed off the end of the stack. Told the
+stack held nothing, the collector freed the live heap; what crashed was whatever
+touched a freed object next, a long way from the fault.
+
+It shipped in `0.1.3` with a green test matrix, because `cargo test` and the
+ahead-of-time pass leave different things in the memory the walk was reading. What
+caught it was the first W# program anyone ran from a Windows shell rather than from
+a test harness. `0.1.4` is the fix.
+{{< /note >}}
 
 ## A concurrent mark trace for cycles
 

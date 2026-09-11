@@ -14,66 +14,26 @@ rejected with a message saying so. Supporting the general case needs global
 storage plus a startup initialiser, and the collector would need those globals as
 roots.
 
-## A supertype is a name, not a path
-
-`struct Sub : Base` resolves `Base` unqualified, so a subtype of a type another
-module declares, including one a package facade re-exports, has to be declared in
-that module. Every other position takes `pkg.Base`; the declaration's parent field
-would have to become a full type expression for this one to.
-
 ## Field access needs a known type
 
 Structs are nominal with no row polymorphism, so `fn getx(p) { return p.x; }`
 cannot be inferred and asks for an annotation instead.
 
-## == is limited
+## A struct that reaches itself cannot be compared
 
-It works on the integer types, `f64`, `bool` and `str`. Structs still need a
-decision about identity versus structural equality.
+`==` on a struct compares field by field and a struct field recurses, so a value
+that reaches itself recurses for ever. That is what derived equality does
+everywhere it exists, and it is said out loud rather than guarded against.
 
-## An integer literal is never an f64
-
-A literal takes the integer type it is used at, but not a float one, so `1.0` must
-be written where an `f64` is wanted. The diagnostic says so in those words rather
-than reporting a bare mismatch.
-
-## % is integer-only
-
-Cranelift has no float remainder, and a float `%` is rejected by inference rather
-than emulated.
-
-## math.abs and math.sign are overloads
-
-They are `i64` and `f64` overloads, so a narrow signed value needs a conversion.
-One version generic over `Number` is not available, because that abstract type
-includes the unsigned types and negation is meaningless there.
-
-## An array index is an i64
-
-Every literal index works without saying so, and `i64(i)` covers the rest.
+A field the comparison cannot reach at all is caught at compile time instead: an
+array, a function or an error union field makes the struct uncomparable, and the
+diagnostic says which field. That reaches down the lattice, so a subtype with such
+a field makes its supertype uncomparable too.
 
 ## x86-64 and aarch64 only
 
 The collector reads the frame pointer with inline assembly. Other architectures
 get a `compile_error!`.
-
-## g[i][j] = v is rejected
-
-The base of a place must be a variable or a field chain. A compound assignment
-evaluates its target twice, and restricting the base is what keeps that
-unobservable.
-
-`var row = g[i]; row[j] = v;` is the spelling, and it is correct rather than
-merely accepted, since an array is a reference. This was found while writing
-AES, where it cost nothing: the state is a flat sixteen-byte buffer, which is how
-AES is written anyway.
-
-## check accepts a program run rejects
-
-When a generic call's type variable is never pinned. `var b = array.new(32);` with
-nothing to say what the elements are passes `wsharp check` and fails `wsharp run`
-with `cannot tell what type main is being used at`, because `check` does not
-monomorphise. The diagnostic is right; which command reports it is not.
 
 ## A top-level const array can be written through an alias
 
@@ -82,17 +42,44 @@ holding the same address, and W# has no way to say that a reference is read-only
 The data is emitted writable for that reason, so the mistake is a shared table
 quietly changing rather than a fault with no message.
 
-## No Windows release
+## shutdown does not stop an acceptor everywhere
 
-The compiler builds and links on Windows, but `fs.mkdir_all` reports success
-without creating the last component of a path, so `ingot install` fails for any
-package with a `src/` directory. Shipping that would be shipping a toolchain whose
-package manager does not work.
+`net.shutdown(s, read, write)` means the same thing on every system on a
+**connected** socket. On a `Listener` it does not: Linux wakes a thread parked in
+`accept`, and the BSDs answer `ENOTCONN` and leave it parked, so it is not
+promised there and the library does not claim it.
+
+An acceptor that has to be stoppable is a `net.poller` with a tick. `@join` on a
+worker parked in `accept` waits for ever, which is a program waiting on its own
+worker rather than anything the exit path can answer for. A worker whose `init`
+never returns is abandoned at exit instead, and `main` returning is what ends the
+process.
 
 ## No P-521 chain
 
 TLS works against RSA, P-256 and P-384 chains. A chain through a P-521 key does
 not verify. There is one such root in a typical store.
+
+## Closed since 0.1.1
+
+Ten entries stood on this page at `0.1.1` and do not now. They are kept as one
+line each, so that a reader who remembers the limitation finds out where it went.
+
+| Was | Is |
+|---|---|
+| A supertype is a name, not a path | a parent is a type expression, so `struct Sub : pkg.Base` resolves as every other type position does |
+| `==` works on scalars and `str`, not on structs | it compares a struct field by field, each field by its own type's rule, recursing into struct fields |
+| An integer literal is never an `f64` | it is, when the `f64` holds the value exactly |
+| `%` is integer-only | `f64` has one, through a call, because Cranelift still has no instruction for it |
+| `math.abs` and `math.sign` are overloads | one definition over `Signed`, the four signed integers, beside the `f64` one |
+| An array index is an `i64` | any integer type indexes |
+| `g[i][j] = v` is rejected | the base is evaluated once into a hidden local, which is what the restriction was standing in for |
+| `wsharp check` accepts a program `run` rejects | `check` monomorphises, so it accepts exactly what `run` accepts |
+| A facade cannot present one name from two files | two re-exports of one name merge into one overload set |
+| No Windows release | the fault was the collector's root walk rather than `fs.mkdir_all`, and Windows is the fourth release target |
+
+Eight of them closed in `0.1.2`, `==` in `0.1.5`, and Windows in `0.1.4`.
+[Status](/docs/status/) has the releases in order.
 
 ---
 

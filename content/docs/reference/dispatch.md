@@ -24,8 +24,8 @@ every other applicable overload in every argument, and strictly more specific in
 at least one.
 
 Specificity is the subtype lattice for struct types, and the member-set ordering
-for abstract types, so `Integer` beats `Number` and `NotFound404` beats
-`Status4xx` beats `Status`.
+for abstract types, so `Signed` beats `Integer` beats `Number`, and `NotFound404`
+beats `Status4xx` beats `Status`.
 
 ## Ambiguity is a compile error
 
@@ -61,9 +61,10 @@ A call that reaches the end of the chain with nothing matching panics with
 
 ## Abstract types are not run-time tests
 
-A parameter annotated `Number` or `Integer` is a generic parameter constrained to
-that type's members. It is compiled once per type it is used at, and nothing is
-tested at run time, because a scalar's type is always known during compilation.
+A parameter annotated `Number`, `Integer` or `Signed` is a generic parameter
+constrained to that type's members. It is compiled once per type it is used at,
+and nothing is tested at run time, because a scalar's type is always known during
+compilation.
 
 ## An overload set as a value
 

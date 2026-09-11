@@ -62,7 +62,7 @@ wrong:
 
 ```toml
 version = "1"
-default = "0.1.1-x86_64-unknown-linux-gnu"
+default = "0.1.5-x86_64-unknown-linux-gnu"
 channel = "stable"
 
 [[override]]
