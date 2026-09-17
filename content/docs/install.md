@@ -61,7 +61,7 @@ Releases are published on
 beside it.
 
 ```sh
-version=0.1.5
+version=0.2.0
 triple=x86_64-unknown-linux-gnu
 
 curl -fsSLO "https://github.com/sinisterMage/WSharp/releases/download/v${version}/wsharp-${version}-${triple}.tar.gz"
@@ -73,7 +73,7 @@ tar xzf "wsharp-${version}-${triple}.tar.gz"
 What comes out is a **directory, not one binary**:
 
 ```text
-wsharp-0.1.5-x86_64-unknown-linux-gnu/
+wsharp-0.2.0-x86_64-unknown-linux-gnu/
 ├── wsharp
 ├── ingot
 ├── lib/libwsharp_start.a

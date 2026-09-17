@@ -72,8 +72,8 @@ const text = @import("std/str");
 
 fn main() i64 {
     const answer = http.get("https://wsharp.io/") catch return 1;
-    print_int(answer.code);
-    print_int(text.len(answer.body));
+    print(answer.code);
+    print(text.len(answer.body));
     return 0;
 }` "zig" "" }}
         </div>
@@ -96,7 +96,7 @@ fn main() i64 {
 fn main() i64 {
     const orders = @spawn(counter, 0, "orders") catch return 1;
     const total = orders.add(7) catch |e| return 2;
-    print_int(total);
+    print(total);
     @join(orders) catch return 3;
     return 0;
 }` "zig" "" }}

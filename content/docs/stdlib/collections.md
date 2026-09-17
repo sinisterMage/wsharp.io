@@ -56,7 +56,7 @@ a run of pushes is amortised constant time.
 var steps: list.List[i64] = list.new();
 list.push(steps, 7);
 for (steps) |v, i| { }
-print_int(list.len(steps));
+print(list.len(steps));
 ```
 
 `pop` and `remove` hand a value back and **panic** on an empty list rather than
@@ -87,7 +87,7 @@ is used at, so a local binding needs no annotation: `set` is what pins `V`.
 ```wsharp
 var seen = map.new();
 map.set(seen, "orders", 7);
-print_int(map.get(seen, "orders") orelse 0);
+print(map.get(seen, "orders") orelse 0);
 for (seen) |e| { print(e.key); }
 ```
 

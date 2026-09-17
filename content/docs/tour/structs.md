@@ -26,7 +26,7 @@ the type and its fields:
 ```wsharp
 const Point = struct { x: i64, y: i64 };
 const p = Point{ .x = 2, .y = 3 };
-print_int(p.x);
+print(p.x);
 ```
 
 Fields are mutable through a `var` binding, and `r.width += 5` writes through the
@@ -72,7 +72,7 @@ declaration, and can be passed anywhere a `fn(A) B` is wanted:
 ```wsharp
 const margin = 100;
 const pad = fn (n) { return n + margin; };
-print_int(twice(pad, 0));
+print(twice(pad, 0));
 ```
 
 `twice` takes `f: fn(i64) i64` and calls it. A plain top-level `fn` can be passed
@@ -101,7 +101,7 @@ part the supertype declares.
 ```wsharp
 const a = Finished{ .at = 1, .count = 5 };
 const b = Finished{ .at = 1, .count = 5 };
-print_bool(a == b);              // true
+print(a == b);              // true
 ```
 
 An optional field compares, so an absent one differs from a present one and two

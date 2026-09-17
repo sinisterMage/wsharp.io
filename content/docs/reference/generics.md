@@ -49,7 +49,7 @@ const maybe: Pair[?i64, str] = Pair{ .first = 5, .second = "five" };
 
 ```wsharp
 const first = fn [T](a: []T) T { return a[0]; };
-print_int(first([]i64{ 7, 8 }));
+print(first([]i64{ 7, 8 }));
 print(first([]str{ "seven", "eight" }));
 ```
 

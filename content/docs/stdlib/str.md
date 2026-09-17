@@ -55,8 +55,8 @@ const str = @import("std/str");
 fn main() i64 {
     const greeting = str.concat("hello, ", "world");
     print(greeting);
-    print_int(str.len(greeting));
-    print_bool(greeting == "hello, world");
+    print(str.len(greeting));
+    print(greeting == "hello, world");
     print(str.substr(greeting, 7, str.len(greeting)));
 
     for (str.split("id,name,email", ",")) |field| { print(field); }

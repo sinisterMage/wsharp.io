@@ -123,6 +123,7 @@ worth recording, and what each left open, is in
 | `0.1.3` | 9 September 2026 | Windows back in the release matrix, the first release with four targets |
 | `0.1.4` | 9 September 2026 | `0.1.3` with a root walk that reads a frame while it is still there, which is what the Windows arm had been missing all along |
 | `0.1.5` | 10 September 2026 | `--emit=api`, `std/map`, `==` on a struct, a linear `str.join` and `str.repeat`, `net.shutdown`, `os.exit`, `fs.modified_at`, `str.to_upper`, `str.replace`, and `main` returning ends the process |
+| `0.2.0` | 17 September 2026 | Unified `print` for strings, every integer width, floats and booleans; the typed print names remain available for compatibility |
 
 Release notes live on
 [the releases page]({{< param repo >}}/releases).

@@ -54,7 +54,7 @@ This is the subtle one, and the example leans on it twice:
 
 ```wsharp
 const first = fn [T](a: []T) T { return a[0]; };
-print_int(first([]i64{ 7, 8 }));
+print(first([]i64{ 7, 8 }));
 print(first([]str{ "seven", "eight" }));
 ```
 

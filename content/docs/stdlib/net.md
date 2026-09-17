@@ -84,8 +84,8 @@ const text = @import("std/str");
 
 fn main() i64 {
     const answer = http.get("https://wsharp.io/") catch return 1;
-    print_int(answer.code);
-    print_int(text.len(answer.body));
+    print(answer.code);
+    print(text.len(answer.body));
     return 0;
 }
 ```

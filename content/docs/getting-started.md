@@ -20,8 +20,9 @@ wsharp run hello.ws
 ```
 
 `print` needs no import. It is part of the **prelude**, which every module has
-without asking: `print`, `print_int`, `print_uint`, `print_float`, `print_bool`,
-`assert`, and a handful of collector counters. Everything else is imported.
+without asking: `print`, `assert`, and a handful of collector counters.
+It accepts strings, integers of any width, floats and booleans. Everything else
+is imported.
 
 ## Three commands
 
@@ -103,8 +104,8 @@ const text = @import("std/str");
 
 fn main() i64 {
     const answer = http.get("https://wsharp.io/") catch return 1;
-    print_int(answer.code);
-    print_int(text.len(answer.body));
+    print(answer.code);
+    print(text.len(answer.body));
     return 0;
 }
 ```
