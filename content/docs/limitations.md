@@ -22,8 +22,16 @@ cannot be inferred and asks for an annotation instead.
 ## A struct that reaches itself cannot be compared
 
 `==` on a struct compares field by field and a struct field recurses, so a value
-that reaches itself recurses for ever. That is what derived equality does
-everywhere it exists, and it is said out loud rather than guarded against.
+that reaches itself would recurse for ever. It is bounded rather than endless:
+past 2048 values deep the comparison panics with a W# diagnostic naming the rule,
+and the program exits 101 like every other W# panic.
+
+Cycles are still not detected. Detecting one needs a set of the pairs in flight,
+hence an allocation in the middle of reading two objects' fields; a counter costs
+one register and one compare. So a legitimately deep value — a chain longer than
+the bound with no cycle in it — meets the same refusal, which is the part of this
+to know before nesting that deeply. It is the shape `std/json`'s `MAX_DEPTH` and
+`std/x509`'s `MAX_CHAIN` already have: a named bound with no knob.
 
 A field the comparison cannot reach at all is caught at compile time instead: an
 array, a function or an error union field makes the struct uncomparable, and the
